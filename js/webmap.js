@@ -47,7 +47,7 @@ function getDataPath(path) {
 
 async function loadNuts() {
     try {
-        const res = await fetch("data/nutsrg_2.json"));
+        const res = await fetch("data/nutsrg_2.json");
         console.log("NUTS response:", res);
         nutsData = await res.json();
         console.log("Loaded NUTS data:", nutsData);
