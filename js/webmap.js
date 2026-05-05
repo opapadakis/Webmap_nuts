@@ -47,12 +47,12 @@ function getDataPath(path) {
 
 async function loadNuts() {
     try {
-        const res = await fetch(getDataPath("nutsrg_2.json"));
+        const res = await fetch("data/nutsrg_2.json"));
         console.log("NUTS response:", res);
         nutsData = await res.json();
         console.log("Loaded NUTS data:", nutsData);
     } catch (e) {
-        console.error("Failed to load from /data/webmap, trying fallback...");
+        console.error("Failed to load from webmap, trying fallback...");
         // Fallback to the original URL if the local file fails
         //geojson: 
         url="https://raw.githubusercontent.com/eurostat/Nuts2json/master/pub/v2/2021/4326/20M/nutsrg_2.json"
@@ -63,7 +63,7 @@ async function loadNuts() {
 }
 
 async function loadCatalog() {
-    const res = await fetch(getDataPath("layers_catalog.csv"));
+    const res = await fetch("data/layers_catalog.csv");
     const text = await res.text();
 
     const rows = text.split("\n").slice(1);
@@ -125,7 +125,7 @@ async function loadCatalog() {
             console.log("Layer item:", item);
             const btn = document.createElement("button");
 
-            // ✅ use definition instead of layer
+            // use definition instead of layer
             btn.textContent = capitalizeFirstLetter(item.definition);
             
             const legend = document.createElement("div");
