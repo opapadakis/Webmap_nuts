@@ -1,0 +1,16 @@
+.legend-color {
+    display:inline-block;
+    width:12px;
+    height:12px;
+    margin-right:5px;
+}
+
+.category-title {
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.layer-item {
+    cursor:pointer;
+    margin-left:10px;
+}

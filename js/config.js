@@ -1,0 +1,1 @@
+const MAPTILER_KEY = "FnQH1qBAGHPjny43vAwo"

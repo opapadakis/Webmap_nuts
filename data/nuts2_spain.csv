@@ -1,0 +1,4 @@
+category,layer_name,definition,source,API_link,data_page_link,country,administrative_level_precision,nuts_level,units,update_frequency,last_update,version,style
+demographics,population_density,Population per km2,Eurostat,https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/DEMO_R_D3DENS,,ES,NUTS2,2,people/km2,annual,2024-01-01,v1,"[{""0-50"":""#f7fcf5""},{""50-200"":""#74c476""},{""200+"":""#00441b""}]"
+employment,unemployment_rate,Unemployment rate %,Eurostat,https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/LFST_R_LFU3RT,,ES,NUTS2,2,%,quarterly,2024-03-01,v1,"[{""0-5"":""#2ca25f""},{""5-10"":""#feb24c""},{""10+"":""#de2d26""}]"
+economy,gdp_per_capita,GDP per capita PPS,Eurostat,https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10r_3gdp,,ES,NUTS2,2,EUR,annual,2023-12-01,v1,"[{""<20000"":""#fee5d9""},{""20000-30000"":""#fcae91""},{""30000+"":""#fb6a4a""}]"
