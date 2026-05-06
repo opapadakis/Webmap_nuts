@@ -120,14 +120,6 @@ async function loadCatalog() {
             const isHidden = container.classList.contains("hidden");
             title.textContent = (isHidden ? "+ " : "− ") + capitalizeFirstLetter(cat);
         };
-        // const container = Object.assign(document.createElement("div"), { className: "legend-container" });
-        // container.style.display = "none";
-
-        // title.onclick = () => {
-        //     const isHidden = container.style.display === "none";
-        //     container.style.display = isHidden ? "block" : "none";
-        //     title.textContent = (isHidden ? "− " : "+ ") + capitalizeFirstLetter(cat);
-        // };
 
         menu.appendChild(title);
         menu.appendChild(container);
@@ -160,7 +152,8 @@ async function loadCatalog() {
             checkbox.checked = true;
 
             const label = document.createElement("span");
-            label.textContent = capitalizeFirstLetter(item.definition);
+            label.textContent = capitalizeFirstLetter(item.definition) + (item.unit ? ` (${item.unit})` : "");
+            
             label.style.marginLeft = "6px";
 
             header.appendChild(checkbox);
@@ -307,16 +300,15 @@ function createOrUpdateLayer(layerName, styleStr, valueProp,unit) {
     .map(([k, v]) => {
         const key = k === "na" || k === "id"
             ? (k === "na" ? "Name" : "Id")
-            : k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, " ");
+            : k.replace(/^value_/, '').replace(/_/g, ' ')
+               .replace(/\b\w/g, c => c.toUpperCase());
 
-        const value =
-            (k !== "na" && k !== "id" && typeof v === "number" && unit)
-                ? `${v} ${unit}`
-                : v;
+        const value = v;
 
         return `${key}: <b>${value}</b>`;
     })
-    .join("<br>");;
+    .join("<br>");
+
 
     hoverPopup
         .setLngLat(e.lngLat)
