@@ -4,11 +4,11 @@ const CONFIG = {
     mode: "local", // "local" OR "github"
 
     local: {
-        base: "/data/"
+        base: "/data/webmap"
     },
 
     github: {
-        base: "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data/"
+        base: "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data/webmap"
     }
 };
 
@@ -48,11 +48,11 @@ function getDataPath(path) {
 async function loadNuts() {
     try {
         const res = await fetch("data/nutsrg_2.json");
-        console.log("NUTS response:", res);
+        //console.log("NUTS response:", res);
         nutsData = await res.json();
-        console.log("Loaded NUTS data:", nutsData);
+        //console.log("Loaded NUTS data:", nutsData);
     } catch (e) {
-        console.error("Failed to load from webmap, trying fallback...");
+        console.error("Failed to load from /data/webmap, trying fallback...");
         // Fallback to the original URL if the local file fails
         //geojson: 
         url="https://raw.githubusercontent.com/eurostat/Nuts2json/master/pub/v2/2021/4326/20M/nutsrg_2.json"
@@ -82,11 +82,12 @@ async function loadCatalog() {
         const layer = cols[1];
         const definition = cols[2];
         const api = cols[5];
+        const unit =cols[9]
         const style = cols[11].trim()
                 .replace(/^"/, '')     // remove first quote
                 .replace(/"$/, '')     // remove last quote
                 .replace(/""/g, '"');  // fix double quotes
-        console.log("Parsed row:", { category, layer, definition, style });
+        console.log("Parsed row:", { category, layer, definition, style,api });
         // group by category
         if (!categories[category]) {
             categories[category] = [];
@@ -96,7 +97,8 @@ async function loadCatalog() {
             layer,
             definition,
             api,
-            style
+            style,
+            unit
         });
     });
 
@@ -108,21 +110,32 @@ async function loadCatalog() {
         title.textContent = "+ " + capitalizeFirstLetter(cat);
         title.classList.add("category-title");
 
-        const container = document.createElement("div");
-        container.style.display = "none";
+        const container = Object.assign(document.createElement("div"), {
+            className: "legend-container hidden"
+        });
 
         title.onclick = () => {
-            const isHidden = container.style.display === "none";
-            container.style.display = isHidden ? "block" : "none";
-            title.textContent = (isHidden ? "− " : "+ ") + cat;
+            container.classList.toggle("hidden");
+
+            const isHidden = container.classList.contains("hidden");
+            title.textContent = (isHidden ? "+ " : "− ") + capitalizeFirstLetter(cat);
         };
+        // const container = Object.assign(document.createElement("div"), { className: "legend-container" });
+        // container.style.display = "none";
+
+        // title.onclick = () => {
+        //     const isHidden = container.style.display === "none";
+        //     container.style.display = isHidden ? "block" : "none";
+        //     title.textContent = (isHidden ? "− " : "+ ") + capitalizeFirstLetter(cat);
+        // };
 
         menu.appendChild(title);
         menu.appendChild(container);
-        console.log("Category:", cat);
+        
         // layers
         categories[cat].forEach(item => {
             console.log("Layer item:", item);
+            console.log("Parsed style:", item.style);
             const btn = document.createElement("button");
 
             // use definition instead of layer
@@ -139,7 +152,21 @@ async function loadCatalog() {
                         .replace(/""/g, '"')
                 )
                 : item.style;
-            console.log("Parsed style array:", styleArray);
+            //console.log("Parsed style array:", styleArray);
+            const header = document.createElement("div");
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = true;
+
+            const label = document.createElement("span");
+            label.textContent = capitalizeFirstLetter(item.definition);
+            label.style.marginLeft = "6px";
+
+            header.appendChild(checkbox);
+            header.appendChild(label);
+
+            legend.appendChild(header);
             styleArray.forEach(s => {
                 const key = Object.keys(s)[0];
                 const value = s[key];
@@ -159,11 +186,27 @@ async function loadCatalog() {
                 legend.appendChild(row);
             });
             btn.onclick = () => {
-                loadEurostatLayer(item.layer, item.api, item.style);
-
-                btn.style.display = "none";     // 👈 hide button
-                legend.style.display = "block"; // 👈 show legend
+                loadEurostatLayer(item.layer, item.api, item.style,item.unit);
+                btn.style.display = "none";
+                legend.style.display = "block";
+                checkbox.checked = true;
+                
+                // Ensure layer visibility matches checkbox state
+                if (map.getLayer(item.layer)) {
+                    map.setLayoutProperty(item.layer, "visibility", "visible");
+                }
             };
+
+            checkbox.onchange = () => {
+            if (map.getLayer(item.layer)) {
+                
+                map.setLayoutProperty(
+                    item.layer,
+                    "visibility",
+                    checkbox.checked ? "visible" : "none"
+                );
+            }
+        };
             //btn.insertAdjacentHTML("afterend", "<br>");
             container.appendChild(btn);
             container.appendChild(legend);
@@ -179,17 +222,17 @@ function capitalizeFirstLetter(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-async function loadEurostatLayer(layerName, apiUrl, style) {
+async function loadEurostatLayer(layerName, apiUrl, style,unit) {
 
-    console.log("Fetching:", layerName);
-    console.log("API URL:", apiUrl);
-
+    
+    //apiUrl = apiUrl+'?geoLevel=nuts2&time=2024'
+    console.log("Fetching:", layerName, "API URL:", apiUrl);
     const res = await fetch(apiUrl);
     const data = await res.json();
 
     const values = extractEurostatValues(data);
 
-    applyDataToMap(layerName, values, style);
+    applyDataToMap(layerName, values, style,unit);
 }
 
 function extractEurostatValues(data) {
@@ -212,24 +255,101 @@ function extractEurostatValues(data) {
     return result;
 }
 
-function applyDataToMap(layerName, values, style) {
 
-    const features = nutsData.features;
-    console.log("features:", features);
-    console.log("values:", values);
-    console.log("style:", style);
-    features.forEach(f => {
+function createOrUpdateLayer(layerName, styleStr, valueProp,unit) {
+  const style = JSON.parse(styleStr);
+  const stops = style.map(s => {
+    const key = Object.keys(s)[0];
+    const color = s[key];
+    const idx = key.lastIndexOf("-");
+    const min = parseFloat(key.slice(0, idx));
+    return [min, color];
+  }).flat();
 
-        const code = f.properties.id;
+  const paint = {
+    "fill-color": [
+      "interpolate",
+      ["linear"],
+      ["get", valueProp],
+      ...stops
+    ],
+    "fill-opacity": 0.4
+  };
 
-        f.properties.value = values[code] || null;
+  if (!map.getLayer(layerName)) {
+    map.addLayer({
+      id: layerName,
+      type: "fill",
+      source: "nuts",
+      paint,
+      layout: { visibility: "visible" }
+    });
+    let hoverPopup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        offset: 10,
+        className: "hover-popup"
     });
 
-    if (map.getSource("nuts")) {
-        map.getSource("nuts").setData(nutsData);
+    map.on("mousemove", layerName, (e) => {
+    map.getCanvas().style.cursor = e.features.length ? "pointer" : "";
+
+    const features = e.features || [];
+    if (!features.length) {
+        hoverPopup.remove();
+        return;
     }
 
-    applyStyle(style);
+    const f = features[0]; // keep it simple (first feature only)
+    const props = f.properties || {};
+
+    const html = Object.entries(props)
+    .map(([k, v]) => {
+        const key = k === "na" || k === "id"
+            ? (k === "na" ? "Name" : "Id")
+            : k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, " ");
+
+        const value =
+            (k !== "na" && k !== "id" && typeof v === "number" && unit)
+                ? `${v} ${unit}`
+                : v;
+
+        return `${key}: <b>${value}</b>`;
+    })
+    .join("<br>");;
+
+    hoverPopup
+        .setLngLat(e.lngLat)
+        .setHTML(html)
+        .addTo(map);
+    });
+
+    map.on("mouseleave", layerName, () => {
+    map.getCanvas().style.cursor = "";
+    hoverPopup.remove();
+    });
+
+  } else {
+    map.setPaintProperty(layerName, "fill-color", [
+      "interpolate",
+      ["linear"],
+      ["get", valueProp],
+      ...stops
+    ]);
+  }
+}
+
+function applyDataToMap(layerName, values, style,unit) {
+  const valueProp = `value_${layerName}`;
+
+  nutsData.features.forEach(f => {
+    const code = f.properties.id;
+    f.properties[valueProp] = values[code] ?? null;
+  });
+
+  map.getSource("nuts").setData(nutsData);
+
+  createOrUpdateLayer(layerName, style, valueProp, unit);
 }
 
 function applyStyle(styleStr) {

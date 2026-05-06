@@ -14,3 +14,16 @@
     cursor:pointer;
     margin-left:10px;
 }
+
+
+.legend-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-container.hidden {
+  display: none;
+}
+
+input[type="checkbox"] { accent-color: #4da3ff; }
