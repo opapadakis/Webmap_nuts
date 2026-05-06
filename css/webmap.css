@@ -1,3 +1,25 @@
+body { margin:0 }
+
+#map {
+position:absolute;
+top:0;
+bottom:0;
+width:100%;
+}
+
+#menu {
+position:absolute;
+left:10px;
+top:10px;
+background:rgba(255, 255, 255, 0.5);
+padding:10px;
+max-height:90vh;
+overflow:auto;
+width:250px;
+font-size:13px;
+border-radius: 10px;
+}
+
 .legend-color {
     display:inline-block;
     width:12px;

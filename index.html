@@ -1,42 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet"/>
-<script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
-<link rel="stylesheet" href="css/webmap.css" />
-<style>
-body { margin:0 }
-
-#map {
-position:absolute;
-top:0;
-bottom:0;
-width:100%;
-}
-
-#menu {
-position:absolute;
-left:10px;
-top:10px;
-background:white;
-padding:10px;
-max-height:90vh;
-overflow:auto;
-width:250px;
-font-size:13px;
-}
-</style>
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Webmap Nuts</title>
+    <link href="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/maplibre-gl@3.0.0/dist/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="/static/css/webmap.css" />
 </head>
 
 <body>
+    <div id="map"></div>
+    <div id="menu"></div>
 
-<div id="map"></div>
-<div id="menu"></div>
-
-<script src="js/config.js"></script>
-<script src="js/webmap.js"></script>
-
+    <script src="/static/js/webmap/config.js"></script>
+    <script src="/static/js/webmap/webmap.js"></script>
 </body>
 </html>
